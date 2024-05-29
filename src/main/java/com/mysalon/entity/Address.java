@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "address_tbl")
@@ -17,10 +18,16 @@ public class Address {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="address_id")
 	private long addressId;
+	
+	@NotBlank(message = "Please enter the Address")
 	@Column(name="full_address")
 	private String fullAddress;
+	
+	@NotBlank(message = "Please enter the State")
 	@Column(name="state")
 	private String state;
+	
+	@NotBlank(message = "Please enter the Pincode")
 	@Column(name="pincode")
 	private String pincode;
 	
