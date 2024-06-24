@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.mysalon.entity.Customer;
+import com.mysalon.exception.BadRequestException;
 import com.mysalon.exception.DuplicateCustomerException;
 import com.mysalon.exception.NoCustomerFoundException;
 import com.mysalon.service.CustomerService;
@@ -33,16 +34,16 @@ public class CustomerController {
 		return responseEntity;
 	}
 	
-	@DeleteMapping("/delete/{userId}")
-	public ResponseEntity<String> removeCustomerC(@Valid @PathVariable long userId) throws NoCustomerFoundException{
-		customerService.removeCustomer(userId);
+	@DeleteMapping("/delete/{custId}")
+	public ResponseEntity<String> removeCustomerC(@Valid @PathVariable long custId) throws BadRequestException{
+		customerService.removeCustomer(custId);
 		ResponseEntity<String> responseEntity = new ResponseEntity<>("Customer deleted successfully", HttpStatus.OK);
 		return responseEntity;
 	}
 	
-	@PutMapping("/update/{userId}")
-	public ResponseEntity<Customer> updateCustomerC(@Valid @PathVariable long userId, @RequestBody Customer customer) throws NoCustomerFoundException{
-		Customer newCustomer = customerService.updateCustomer(userId, customer);
+	@PutMapping("/update/{custId}")
+	public ResponseEntity<Customer> updateCustomerC(@Valid @PathVariable long custId, @RequestBody Customer customer) throws NoCustomerFoundException{
+		Customer newCustomer = customerService.updateCustomer(custId, customer);
 		ResponseEntity<Customer> responseEntity = new ResponseEntity<>(newCustomer, HttpStatus.OK);
 		return responseEntity;
 	}
