@@ -86,5 +86,22 @@ public class Customer {
 	public void setAddress(Address address) {
 		this.address = address;
 	}
+	public Customer(long custId,
+			@NotBlank(message = "Please enter the Name") @Size(min = 3, max = 15, message = "Please enter the Name") String name,
+			@NotBlank(message = "Please enter the Contact") @Pattern(regexp = "[789]{1}[0-9]{9}", message = "Please enter a valid Contact number") String contactNo,
+			@NotBlank(message = "Please enter the Email") @Email String email, @NotNull @Past LocalDate dob,
+			@Valid Address address) {
+		super();
+		this.custId = custId;
+		this.name = name;
+		this.contactNo = contactNo;
+		this.email = email;
+		this.dob = dob;
+		this.address = address;
+	}
+	public Customer() {
+		super();
+	}
+	
 	
 }

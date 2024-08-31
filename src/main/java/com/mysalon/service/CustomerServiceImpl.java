@@ -17,6 +17,10 @@ public class CustomerServiceImpl implements CustomerService{
 	@Autowired
 	private CustomerRepository customerRepository;
 	
+	//For Testing
+	public CustomerServiceImpl(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
 	
 	@Override
 	public Customer addCustomer(Customer customer) throws DuplicateCustomerException{
@@ -50,6 +54,11 @@ public class CustomerServiceImpl implements CustomerService{
 
 	@Override
 	public Customer updateCustomer(long custId, Customer customer) throws NoCustomerFoundException{
+	/*	Customer existingCustomer = customerRepository.findById(custId)
+        .orElseThrow(() -> new NoCustomerFoundException("Customer does not exist"));	*/
+	//customerRepository.findById(custId) returns an Optional<Customer>
+	//The above code can be used to replace below 5 lines.
+		
 		Optional<Customer> customer1 = customerRepository.findById(custId);
 		if(customer1.isEmpty()) {
 			throw new NoCustomerFoundException("Customer does not exist");
@@ -58,13 +67,16 @@ public class CustomerServiceImpl implements CustomerService{
 		
 		if(customer.getName() != null) {
 			existingCustomer.setName(customer.getName());
-		} else {
-			existingCustomer.setName(existingCustomer.getName());
-			}
-		//Similar if-else for below 3
-		existingCustomer.setContactNo(customer.getContactNo());
-		existingCustomer.setEmail(customer.getEmail());
-		existingCustomer.setDob(customer.getDob());
+		}
+		if (customer.getContactNo() != null) {
+			existingCustomer.setContactNo(customer.getContactNo());
+		}
+		if (customer.getEmail() != null) {
+			existingCustomer.setEmail(customer.getEmail());
+		}
+		if (customer.getDob() != null) {
+			existingCustomer.setDob(customer.getDob());
+		}
 		
 		Address updatedAddress = customer.getAddress();
 		
@@ -73,22 +85,14 @@ public class CustomerServiceImpl implements CustomerService{
 			
 			if(updatedAddress.getFullAddress() != null) {
 				existingAddress.setFullAddress(updatedAddress.getFullAddress());
-			} else {
-				existingAddress.setFullAddress(existingAddress.getFullAddress());
-				}
-
+			}
 			if(updatedAddress.getState() != null) {
 				existingAddress.setState(updatedAddress.getState());
-			} else {
-				existingAddress.setState(existingAddress.getState());
-				}
-
+			}
 			if(updatedAddress.getPincode() != null) {
 				existingAddress.setPincode(updatedAddress.getPincode());
-			} else {
-				existingAddress.setPincode(existingAddress.getPincode());
-				}
 			}
+		}
 		Customer newCustomer = customerRepository.save(existingCustomer);
 		return newCustomer;
 	}
@@ -113,4 +117,23 @@ public class CustomerServiceImpl implements CustomerService{
 		return customerList;
 	}
 
+	@Override
+	public Customer getCustomerByNameAndEmail(String name, String email) throws NoCustomerFoundException {
+		Optional<Customer> customer1 = customerRepository.findByNameAndEmail(name, email);
+		if(customer1.isEmpty()) {
+			throw new NoCustomerFoundException("Customer with Name " +name +" and Email " +email +" does not exist");
+		}
+		Customer newCustomer = customer1.get();
+		return newCustomer;
+	}
+
+	@Override
+	public Customer getCustomerByNameAndAddress_State(String name, String state) throws NoCustomerFoundException {
+		Optional<Customer> customer1 = customerRepository.findByNameAndAddress_State(name, state);
+		if(customer1.isEmpty()) {
+			throw new NoCustomerFoundException("Customer with Name " +name +" and State " +state +" does not exist");
+		}
+		Customer newCustomer = customer1.get();
+		return newCustomer;
+	}
 }

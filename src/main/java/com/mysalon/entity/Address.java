@@ -73,7 +73,36 @@ public class Address {
 		this.customer = customer;
 	}
 	
+	//All args constructor
+	public Address(long addressId,
+			@NotBlank(message = "Please enter the Address") @Size(min = 5, max = 30) String fullAddress,
+			@NotBlank(message = "Please enter the State") String state,
+			@NotBlank(message = "Please enter the Pincode") @Pattern(regexp = "\\d{6}", message = "Enter valid pincode") String pincode,
+			Customer customer) {
+		super();
+		this.addressId = addressId;
+		this.fullAddress = fullAddress;
+		this.state = state;
+		this.pincode = pincode;
+		this.customer = customer;
+	}
 	
 	
+	//No arg constructor
+	public Address() {
+		super();
+	}
+	
+	//Constructor without Customer field, used for Test class
+	public Address(long addressId,
+			@NotBlank(message = "Please enter the Address") @Size(min = 5, max = 30) String fullAddress,
+			@NotBlank(message = "Please enter the State") String state,
+			@NotBlank(message = "Please enter the Pincode") @Pattern(regexp = "\\d{6}", message = "Enter valid pincode") String pincode) {
+		super();
+		this.addressId = addressId;
+		this.fullAddress = fullAddress;
+		this.state = state;
+		this.pincode = pincode;
+	}
 	
 }

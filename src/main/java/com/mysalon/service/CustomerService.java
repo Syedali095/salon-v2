@@ -18,4 +18,8 @@ public interface CustomerService {
 
 	List<Customer> getAllCustomers() throws NoCustomerFoundException;
 	
+	Customer getCustomerByNameAndEmail(String name, String email) throws NoCustomerFoundException;
+	
+	Customer getCustomerByNameAndAddress_State(String name, String email) throws NoCustomerFoundException;
+	
 }
