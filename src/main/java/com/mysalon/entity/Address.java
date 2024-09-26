@@ -2,7 +2,6 @@ package com.mysalon.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mysalon.validations.ValidateState;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,88 +12,38 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "address_tbl")
 public class Address {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="address_id")
-	private long addressId;
-	
+	@Column(name = "address_id")
+	private Long addressId;
+
 	@NotBlank(message = "Please enter the Address")
-	@Size(min=5 , max=30)
-	@Column(name="full_address")
+	@Size(min = 5, max = 30)
+	@Column(name = "full_address")
 	private String fullAddress;
-	
+
 	@NotBlank(message = "Please enter the State")
 	@ValidateState
-	@Column(name="state")
+	@Column(name = "state")
 	private String state;
-	
+
 	@NotBlank(message = "Please enter the Pincode")
 	@Pattern(regexp = "\\d{6}", message = "Enter valid pincode")
-	@Column(name="pincode")
+	@Column(name = "pincode")
 	private String pincode;
-	
-	public long getAddressId() {
-		return addressId;
-	}
-	public void setAddressId(long addressId) {
-		this.addressId = addressId;
-	}
-	public String getFullAddress() {
-		return fullAddress;
-	}
-	public void setFullAddress(String fullAddress) {
-		this.fullAddress = fullAddress;
-	}
-	public String getState() {
-		return state;
-	}
-	public void setState(String state) {
-		this.state = state;
-	}
-	public String getPincode() {
-		return pincode;
-	}
-	public void setPincode(String pincode) {
-		this.pincode = pincode;
-	}
-	
+
 	@JsonIgnore
 	@OneToOne(mappedBy = "address")
 	private Customer customer;
-	
-	public Customer getCustomer() {
-		return customer;
-	}
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
-	}
-	
-	//All args constructor
-	public Address(long addressId,
-			@NotBlank(message = "Please enter the Address") @Size(min = 5, max = 30) String fullAddress,
-			@NotBlank(message = "Please enter the State") String state,
-			@NotBlank(message = "Please enter the Pincode") @Pattern(regexp = "\\d{6}", message = "Enter valid pincode") String pincode,
-			Customer customer) {
-		super();
-		this.addressId = addressId;
-		this.fullAddress = fullAddress;
-		this.state = state;
-		this.pincode = pincode;
-		this.customer = customer;
-	}
-	
-	
-	//No arg constructor
-	public Address() {
-		super();
-	}
-	
-	//Constructor without Customer field, used for Test class
-	public Address(long addressId,
+
+	// Constructor without Customer field, used for Test class
+	public Address(Long addressId,
 			@NotBlank(message = "Please enter the Address") @Size(min = 5, max = 30) String fullAddress,
 			@NotBlank(message = "Please enter the State") String state,
 			@NotBlank(message = "Please enter the Pincode") @Pattern(regexp = "\\d{6}", message = "Enter valid pincode") String pincode) {
@@ -104,5 +53,4 @@ public class Address {
 		this.state = state;
 		this.pincode = pincode;
 	}
-	
 }

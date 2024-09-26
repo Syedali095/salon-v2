@@ -48,12 +48,19 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(NoCustomerFoundException.class)
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorResponse handleNoCustomerFoundException(NoCustomerFoundException ex) {
-		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(),
-				HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage(), "/customer");
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/customer");
 		return res;
 	}
 
+	@ExceptionHandler(NoCardFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleNoCardFoundException(NoCardFoundException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/customer");
+		return res;
+	}
 
 }

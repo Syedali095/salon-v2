@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.mysalon.entity.Address;
 import com.mysalon.entity.Customer;
-import com.mysalon.exception.BadRequestException;
 import com.mysalon.exception.DuplicateCustomerException;
 import com.mysalon.exception.NoCustomerFoundException;
 import com.mysalon.repository.CustomerRepository;
@@ -24,44 +23,29 @@ public class CustomerServiceImpl implements CustomerService{
 	
 	@Override
 	public Customer addCustomer(Customer customer) throws DuplicateCustomerException{
-		Optional<Customer> customer1 = customerRepository.findById(customer.getCustId());
+		Optional<Customer> customer1 = customerRepository.findByContactNo(customer.getContactNo());
 		if(customer1.isPresent()) {
-			throw new DuplicateCustomerException("Customer already exists");
+			throw new DuplicateCustomerException();
 		}
 		Customer newCustomer = customerRepository.save(customer);
 		return newCustomer;
 	}
 
-//	@Override
-//	public void removeCustomer(long custId) throws NoCustomerFoundException {
-//		Optional<Customer> customer1 = customerRepository.findById(custId);
-//		if(customer1.isPresent()) {
-//			customerRepository.deleteById(custId);
-//		} else {
-//			throw new NoCustomerFoundException("Customer does not exist");
-//		}	
-//	}
-	
 	@Override
-	public void removeCustomer(long custId) throws BadRequestException {
+	public void removeCustomer(Long custId) throws NoCustomerFoundException {
 		Optional<Customer> customer1 = customerRepository.findById(custId);
 		if(customer1.isPresent()) {
 			customerRepository.deleteById(custId);
 		} else {
-			throw new BadRequestException("No Customer exists with Customer ID " +custId);
+			throw new NoCustomerFoundException("No Customer exists with Customer ID " +custId);
 		}	
 	}
 
 	@Override
-	public Customer updateCustomer(long custId, Customer customer) throws NoCustomerFoundException{
-	/*	Customer existingCustomer = customerRepository.findById(custId)
-        .orElseThrow(() -> new NoCustomerFoundException("Customer does not exist"));	*/
-	//customerRepository.findById(custId) returns an Optional<Customer>
-	//The above code can be used to replace below 5 lines.
-		
+	public Customer updateCustomer(Long custId, Customer customer) throws NoCustomerFoundException{
 		Optional<Customer> customer1 = customerRepository.findById(custId);
 		if(customer1.isEmpty()) {
-			throw new NoCustomerFoundException("Customer does not exist");
+			throw new NoCustomerFoundException("No Customer exists with Customer ID " +custId);
 		}
 		Customer existingCustomer = customer1.get();
 		
@@ -99,7 +83,7 @@ public class CustomerServiceImpl implements CustomerService{
 	
 	
 	@Override
-	public Customer getCustomer(long userId) throws NoCustomerFoundException {
+	public Customer getCustomer(Long userId) throws NoCustomerFoundException {
 		Optional<Customer> customer1 = customerRepository.findById(userId);
 		if(customer1.isEmpty()) {
 			throw new NoCustomerFoundException("Customer with UserID " +userId +" does not exist");
@@ -109,11 +93,8 @@ public class CustomerServiceImpl implements CustomerService{
 	}
 
 	@Override
-	public List<Customer> getAllCustomers() throws NoCustomerFoundException {
+	public List<Customer> getAllCustomers() {
 		List<Customer> customerList = customerRepository.findAll();
-		if(customerList.isEmpty()) {
-			throw new NoCustomerFoundException("Customer does not exist");
-		}
 		return customerList;
 	}
 
