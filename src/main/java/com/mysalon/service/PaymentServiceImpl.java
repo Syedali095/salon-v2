@@ -1,18 +1,21 @@
 package com.mysalon.service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.mysalon.entity.Appointment;
+import com.mysalon.constantconfig.AppointmentBookingFee;
+import com.mysalon.dto.PaymentDto;
 import com.mysalon.entity.Card;
-import com.mysalon.entity.Customer;
 import com.mysalon.entity.Payment;
-import com.mysalon.entity.PaymentDto;
 import com.mysalon.exception.BadRequestException;
+import com.mysalon.exception.InsufficientBalanceException;
+import com.mysalon.exception.NoCardFoundException;
 import com.mysalon.exception.NoCustomerFoundException;
-import com.mysalon.repository.AppointmentRepository;
+import com.mysalon.exception.NoPaymentFoundException;
 import com.mysalon.repository.CardRepository;
 import com.mysalon.repository.CustomerRepository;
 import com.mysalon.repository.PaymentRepository;
@@ -21,49 +24,105 @@ import com.mysalon.repository.PaymentRepository;
 public class PaymentServiceImpl implements PaymentService {
 	@Autowired
 	private PaymentRepository paymentRepository;
-
-	@Autowired
-	private AppointmentRepository appointmentRepository;
-
 	@Autowired
 	private CustomerRepository customerRepository;
-
 	@Autowired
 	private CardRepository cardRepository;
+//	@Autowired - This is a PaymentService Class, it should not be Autowired with itself.
+	private PaymentService paymentService;
+
 	
 	@Override
-	public Payment savePayment(Payment payment) {
-		Optional<Payment> optional = paymentRepository.findById(payment.getPaymentId());
-		if (optional.isPresent()) {
-			throw new BadRequestException("Already Exist");
+	public Payment makePayment(PaymentDto paymentDto, Long custCardId, Long salonCardId) {
+		// Convert DTO to Payment entity
+		Payment payment = new Payment();
+		payment.setPaymentType(paymentDto.getPaymentType());
+
+		final BigDecimal REQUIRED_FEE_AMOUNT = AppointmentBookingFee.getFEE();
+
+		// Parse the payment amount from DTO. Check the Amount entered is a BigDecimal
+		BigDecimal enteredAmount;
+		try {
+			enteredAmount = paymentDto.getAmount();
+		} catch (NumberFormatException e) {
+			throw new BadRequestException("Invalid amount format: " + paymentDto.getAmount());
 		}
+
+		// To check if the amount entered is less than the mentioned amount
+		if (enteredAmount.compareTo(REQUIRED_FEE_AMOUNT) != 0) {
+			throw new BadRequestException("Please enter the exact amount of 500/-");
+		}
+		payment.setAmount(enteredAmount);
+
+		paymentService.transaction(custCardId, salonCardId, enteredAmount);
+		
+		Optional<Card> customerCard = cardRepository.findById(custCardId);
+
+		// Link the Payment to Card
+		payment.setCard(customerCard.get());
+
+		// Save and return the payment
 		Payment newPayment = paymentRepository.save(payment);
 		return newPayment;
 	}
 
 	@Override
-	public Payment getPaymentByAppointmentId(Long appointmentId) {
-		Optional<Appointment> appointment1 = appointmentRepository.findById(appointmentId);
-		if (appointment1.isEmpty()) {
-			throw new BadRequestException("No such appointment found");
-		}
-		Payment payment = paymentRepository.findByAppointment_AppointmentId(appointmentId);
-		if (payment == null) { // To use isEmpty, make it optional here, PaymentService and PaymentRepository
-			throw new BadRequestException("No Payment found");
-		}
-		return payment;
+	public void reversePayment(Long paymentId, Long salonCardId) {
+		Payment payment = paymentRepository.findById(paymentId)
+				.orElseThrow(() -> new NoPaymentFoundException("No Payment found with Payment ID " + paymentId));
+
+		BigDecimal paidAmount = payment.getAmount();
+		Long custCardId = payment.getCard().getCardId();
+		
+		paymentService.transaction(salonCardId, custCardId, paidAmount);
+		paymentRepository.deleteById(paymentId);
 	}
 
-	// Doubtful
+	@Override
+	public void transaction(Long payerCardId, Long payeeCardId, BigDecimal amount) {
+		// Fetch payer's card
+		Card payerCard = cardRepository.findById(payerCardId)
+				.orElseThrow(() -> new NoCardFoundException("Payer card does not exist"));
+
+		// Fetch payee's card
+		Card payeeCard = cardRepository.findById(payeeCardId)
+				.orElseThrow(() -> new NoCardFoundException("Payee card does not exist"));
+
+		// Check for sufficient balance in payer's card
+		BigDecimal availableBalance = payerCard.getBalance();
+
+		if (availableBalance.compareTo(amount) < 0) {
+			throw new InsufficientBalanceException("Insufficient balance in the card!");
+		}
+
+		// Deduct the balance from payer card
+		BigDecimal newAvailableBalance = availableBalance.subtract(amount);
+		payerCard.setBalance(newAvailableBalance);
+
+		// Add the payment amount to the payee card
+		//BigDecimal salonBalance = salonCard.getBalance();
+		BigDecimal newSalonBalance = payeeCard.getBalance().add(amount);
+		payeeCard.setBalance(newSalonBalance);
+
+		// Update the cards' balances in the database
+		cardRepository.save(payerCard);
+		cardRepository.save(payeeCard);
+	}
+
+	@Override
+	public Payment getPaymentByAppointmentId(Long appointmentId) {
+		return paymentRepository.findByAppointment_AppointmentId(appointmentId).orElseThrow(
+				() -> new NoPaymentFoundException("No Payment found with Appointment ID " + appointmentId));
+	}
+
 	@Override
 	public List<Payment> getPaymentListByCustomerId(Long custId) {
-		Optional<Customer> customer1 = customerRepository.findById(custId);
-		if (customer1.isEmpty()) {
-			throw new NoCustomerFoundException("Customer with UserID " + custId + " does not exist");
-		}
+		customerRepository.findById(custId)
+				.orElseThrow(() -> new NoCustomerFoundException("Customer with custID " + custId + " does not exist"));
+
 		List<Payment> paymentList = paymentRepository.findByAppointment_Customer_CustId(custId);
 		if (paymentList.isEmpty()) {
-			throw new BadRequestException("No Payment found");
+			return Collections.emptyList();
 		}
 		return paymentList;
 	}
@@ -72,73 +131,16 @@ public class PaymentServiceImpl implements PaymentService {
 	public List<Payment> getAllPayments() {
 		List<Payment> paymentList = paymentRepository.findAll();
 		if (paymentList.isEmpty()) {
-			throw new BadRequestException("Payment list is Empty");
+			return Collections.emptyList();
 		}
 		return paymentList;
 	}
 
-	@Override
-	public Payment makePayment(PaymentDto paymentDto, Long custCardId, Long salonCardId) {
-		// Convert DTO to Payment entity
-		Payment payment = new Payment();
-		payment.setPaymentType(paymentDto.getPaymentType());
-		
-		final BigDecimal REQUIRED_FEE_AMOUNT = new BigDecimal("500");
-		
-		// Parse the payment amount from DTO. Exception if the Amount entered consist of a letter.
-	    BigDecimal enteredAmount;
-	    try {
-	    	enteredAmount = new BigDecimal(paymentDto.getAmount());
-	    } catch (NumberFormatException e) {
-	        throw new BadRequestException("Invalid amount format: " + paymentDto.getAmount());
-	    }
-	    
-	    // To check if the amount entered is less than the mentioned amount
-	    if (enteredAmount.compareTo(REQUIRED_FEE_AMOUNT) != 0) {
-	        throw new BadRequestException("Please enter the exact amount of 500/-");
-	    }
-		payment.setAmount(enteredAmount.toString());
-
-		//Fetch customer's card ID
-		Optional<Card> optionalCard = cardRepository.findById(custCardId);
-		if (optionalCard.isEmpty()) {
-			throw new BadRequestException("card doesnot exist");
-		}
-		Card customerCard = optionalCard.get();
-		
-		// Fetch the salon's main card
-	    Optional<Card> optionalSalonCard = cardRepository.findById(salonCardId);
-	    if (optionalSalonCard.isEmpty()) {
-	        throw new BadRequestException("Salon card does not exist");
-	    }
-	    Card salonCard = optionalSalonCard.get();
-		
-		//Check for sufficient balance
-		BigDecimal availableBalance = new BigDecimal(customerCard.getBalance());
-		
-		if (availableBalance.compareTo(enteredAmount) < 0) {
-	        throw new BadRequestException("Insufficient balance in the card!");
-	    }
-		
-		//Deduct the balance
-		BigDecimal newAvailableBalance = availableBalance.subtract(enteredAmount);
-		customerCard.setBalance(newAvailableBalance.toString());
-		
-		// Add the payment amount to the salon's main card
-	    BigDecimal salonBalance = new BigDecimal(salonCard.getBalance());
-	    BigDecimal newSalonBalance = salonBalance.add(enteredAmount);
-	    salonCard.setBalance(newSalonBalance.toString());
-
-	    // Update the cards' balances in the database
-	    cardRepository.save(customerCard);
-	    cardRepository.save(salonCard);
-	    
-		payment.setCard(customerCard);
-		
-		// Save the payment
-		Payment newPayment = paymentRepository.save(payment);
-		
-		return newPayment;
-	}
+//	@Override
+//	public void deletePayment(Long paymentId) {
+//		paymentRepository.findById(paymentId)
+//				.orElseThrow(() -> new NoPaymentFoundException("No Payment found with Payment ID " + paymentId));
+//		paymentRepository.deleteById(paymentId);
+//	}
 
 }

@@ -1,5 +1,6 @@
 package com.mysalon.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,11 +11,11 @@ public interface SalonServiceRepository extends JpaRepository<SalonService, Long
 	
 	Optional<SalonService> findByServiceName(String serviceName);
 	
-	List<SalonService> findByServicePrice(String servicePrice);
+	List<SalonService> findByServicePrice(BigDecimal servicePrice);
 	
 	List<SalonService> findByAppointments_AppointmentId(Long appointmentId);
 	
-	//Used for AppointmentDto - To Fetch all the services with service name provided by the user.
 	List<SalonService> findByServiceNameIn(List<String> serviceName);
-	//"In" tells Spring Data JPA to create a query that matches any of the serviceName values in the provided list.
+	
+	List<BigDecimal> findServicePriceByServiceNameIn(List<String> serviceNames);
 }

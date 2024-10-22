@@ -1,13 +1,14 @@
 package com.mysalon.service;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.mysalon.entity.SalonService;
 import com.mysalon.exception.BadRequestException;
+import com.mysalon.exception.NoServiceFoundException;
 import com.mysalon.repository.SalonServiceRepository;
 
 @Service
@@ -15,61 +16,61 @@ public class SalonServiceClassImpl implements SalonServiceClass{
 
 	@Autowired
 	private SalonServiceRepository salonServiceRepository;
+	
 	@Override
 	public SalonService addSalonService(SalonService salonService) {
-		Optional<SalonService> optional = salonServiceRepository.findById(salonService.getServiceId());
+		Optional <SalonService> optional = salonServiceRepository.findByServiceName(salonService.getServiceName());
 		if(optional.isPresent()) {
-			throw new BadRequestException("Service already exist with that ID");
+			throw new BadRequestException("Service already exist with that Name");
 		}
-		SalonService newSalonService = salonServiceRepository.save(salonService);
-		return newSalonService;
+		SalonService newService = salonServiceRepository.save(salonService);
+		return newService;
 	}
 
 	@Override
 	public SalonService getSalonServiceById(Long serviceId) {
-		Optional<SalonService> optional = salonServiceRepository.findById(serviceId);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Service does not exist");
-		}
-		SalonService newSalonService = optional.get();
-		return newSalonService;
-	}
-
-	@Override
-	public List<SalonService> getAllSalonServices() {
-		List<SalonService> salonServiceList = salonServiceRepository.findAll();
-		if(salonServiceList.isEmpty()) {
-			throw new BadRequestException("No Services found");
-		}
-		return salonServiceList;
+		return salonServiceRepository.findById(serviceId)
+				.orElseThrow(() -> new NoServiceFoundException("Service with Service Id " +serviceId +" does not exist"));
 	}
 
 	@Override
 	public SalonService getSalonServiceByName(String serviceName) {
-		Optional<SalonService> optional = salonServiceRepository.findByServiceName(serviceName);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Service does not exist");
-		}
-		SalonService newSalonService = optional.get();
-		return newSalonService;
+		return salonServiceRepository.findByServiceName(serviceName)
+				.orElseThrow(() -> new NoServiceFoundException("Service with Service Name " +serviceName +" does not exist"));
 	}
 
 	@Override
-	public List<SalonService> getSalonServiceByPrice(String servicePrice) {
+	public List<SalonService> getSalonServiceByPrice(BigDecimal servicePrice) {
 		List<SalonService> salonServiceList = salonServiceRepository.findByServicePrice(servicePrice);
 		if(salonServiceList.isEmpty()) {
-			throw new BadRequestException("Service does not exist");
+			return Collections.emptyList();
+		}
+		return salonServiceList;
+	}
+	
+	@Override
+	public List<SalonService> getSalonServiceByAppointmentId(Long appointmentId) {
+		List<SalonService> salonServiceList = salonServiceRepository.findByAppointments_AppointmentId(appointmentId);
+		if(salonServiceList.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return salonServiceList;
+	}
+	
+	@Override
+	public List<SalonService> getAllSalonServices() {
+		List<SalonService> salonServiceList = salonServiceRepository.findAll();
+		if(salonServiceList.isEmpty()) {
+			return Collections.emptyList();
 		}
 		return salonServiceList;
 	}
 
 	@Override
 	public SalonService updateSalonServiceById(Long serviceId, SalonService salonservice) {
-		Optional<SalonService> optional = salonServiceRepository.findById(serviceId);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Service does not exist");
-		}
-		SalonService existingSalonService = optional.get();
+		SalonService existingSalonService = salonServiceRepository.findById(serviceId)
+				.orElseThrow(() -> new NoServiceFoundException("Service with Service Id " +serviceId +" does not exist"));
+
 		if(salonservice.getServiceName() != null) {
 			existingSalonService.setServiceName(salonservice.getServiceName());
 		}
@@ -79,26 +80,14 @@ public class SalonServiceClassImpl implements SalonServiceClass{
 		if(salonservice.getServiceDuration() != null) {
 			existingSalonService.setServiceDuration(salonservice.getServiceDuration());
 		}
-		SalonService updatedSalonService = salonServiceRepository.save(existingSalonService);
-		return updatedSalonService;
+		return salonServiceRepository.save(existingSalonService);
 	}
 
 	@Override
 	public void deleteSalonServiceById(Long serviceId) {
-		Optional<SalonService> optional = salonServiceRepository.findById(serviceId);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Service does not exist");
-		}
+		salonServiceRepository.findById(serviceId)
+			.orElseThrow(() -> new NoServiceFoundException("Service with Service Id " +serviceId +" does not exist"));
 		salonServiceRepository.deleteById(serviceId);
-	}
-
-	@Override
-	public List<SalonService> getSalonServiceByAppointmentId(Long appointmentId) {
-		List<SalonService> salonServiceList = salonServiceRepository.findByAppointments_AppointmentId(appointmentId);
-		if(salonServiceList.isEmpty()) {
-			throw new BadRequestException("Service does not exist for this appointmentId");
-		}
-		return salonServiceList;
 	}
 
 }

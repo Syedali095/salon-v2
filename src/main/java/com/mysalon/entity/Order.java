@@ -1,9 +1,9 @@
 package com.mysalon.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,14 +32,14 @@ public class Order {
 	private LocalTime bookingTime;
 	
 	@Column(name="amount_paid")
-	private String amountPaid;
+	private BigDecimal amountPaid;
 	
-	@JsonIgnore
+	//@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "cust_id", nullable = false)
 	private Customer customer;
 	
 	@JsonIgnore
-	@OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+	@OneToOne(mappedBy = "order")
 	private Appointment appointment;
 }

@@ -11,11 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +21,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysalon.entity.Address;
 import com.mysalon.entity.Customer;
@@ -47,16 +44,11 @@ public class CustomerControllerTest {
     
     @BeforeEach
     void setUp() {
-    	customer = new Customer();
-        customer.setCustId(1);
-        customer.setName("Syed");
-        customer.setContactNo("9887876654");
-        customer.setEmail("syed@gmail.com");
-        customer.setDob(LocalDate.of(1999,07,12));
-        customer.setAddress(new Address(1, "Sangareddy", "TS", "567876"));
+    	customer = new Customer(1L, "Syed", "8880987765", "Syed@gmail.com", LocalDate.of(1998,07,12), 
+        		new Address(1L, "SRD", "TS", "997876"));
         
-        customer2 = new Customer(2, "Aly", "9880987765", "aly@gmail.com", LocalDate.of(1999,07,12), 
-        		new Address(2, "Jog", "MH", "597876"));
+        customer2 = new Customer(2L, "Aly", "9880987765", "aly@gmail.com", LocalDate.of(1999,07,12), 
+        		new Address(2L, "Jog", "MH", "597876"));
         
         customerList.add(customer);
         customerList.add(customer2);

@@ -1,5 +1,6 @@
 package com.mysalon.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,71 +14,64 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.mysalon.entity.SalonService;
 import com.mysalon.service.SalonServiceClass;
-
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/service")
 public class SalonServiceController {
+
 	@Autowired
 	private SalonServiceClass salonServiceClass;
-	
+
 	@PostMapping("/save")
-	public ResponseEntity<SalonService> addService(@Valid @RequestBody SalonService salonService){
+	public ResponseEntity<SalonService> addService(@Valid @RequestBody SalonService salonService) {
 		SalonService newSalonService = salonServiceClass.addSalonService(salonService);
-		ResponseEntity<SalonService> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.CREATED);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.CREATED);
 	}
-	
+
 	@GetMapping("/get/{serviceId}")
-	public ResponseEntity<SalonService> getServiceById(@PathVariable Long serviceId){
+	public ResponseEntity<SalonService> getServiceById(@PathVariable Long serviceId) {
 		SalonService newSalonService = salonServiceClass.getSalonServiceById(serviceId);
-		ResponseEntity<SalonService> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/getByName")
-	public ResponseEntity<SalonService> getServiceByName(@RequestParam String serviceName){
+	public ResponseEntity<SalonService> getServiceByName(@RequestParam String serviceName) {
 		SalonService newSalonService = salonServiceClass.getSalonServiceByName(serviceName);
-		ResponseEntity<SalonService> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/getByPrice")
-	public ResponseEntity<List<SalonService>> getServiceByPrice(@RequestParam(required = false, defaultValue = "1000") String servicePrice){
+	public ResponseEntity<List<SalonService>> getServiceByPrice(
+			@RequestParam(required = false, defaultValue = "100.00") BigDecimal servicePrice) {
 		List<SalonService> newSalonService = salonServiceClass.getSalonServiceByPrice(servicePrice);
-		ResponseEntity<List<SalonService>> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.OK);
 	}
-	
-	@GetMapping("/getByAppointmentId")
-	public ResponseEntity<List<SalonService>> getServiceByAppointmentId(@PathVariable Long appointmentId){
+
+	@GetMapping("/getByAppointmentId/{appointmentId}")
+	public ResponseEntity<List<SalonService>> getServiceByAppointmentId(@PathVariable Long appointmentId) {
 		List<SalonService> newSalonService = salonServiceClass.getSalonServiceByAppointmentId(appointmentId);
-		ResponseEntity<List<SalonService>> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/getAll")
-	public ResponseEntity<List<SalonService>> getAllServices(){
+	public ResponseEntity<List<SalonService>> getAllServices() {
 		List<SalonService> newSalonService = salonServiceClass.getAllSalonServices();
-		ResponseEntity<List<SalonService>> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.OK);
 	}
-	
-	@PutMapping("/update")
-	public ResponseEntity<SalonService> updateSalonService(@Valid @PathVariable Long serviceId, @RequestBody SalonService salonService){
+
+	@PutMapping("/update/{serviceId}")
+	public ResponseEntity<SalonService> updateSalonService(@PathVariable Long serviceId,
+			@Valid @RequestBody SalonService salonService) {
 		SalonService newSalonService = salonServiceClass.updateSalonServiceById(serviceId, salonService);
-		ResponseEntity<SalonService> responseEntity = new ResponseEntity<>(newSalonService, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newSalonService, HttpStatus.OK);
 	}
-	
-	@DeleteMapping("/delete")
-	public ResponseEntity<String> deleteSalonServiceById(@PathVariable Long serviceId){
+
+	@DeleteMapping("/delete/{serviceId}")
+	public ResponseEntity<String> deleteSalonServiceById(@PathVariable Long serviceId) {
 		salonServiceClass.deleteSalonServiceById(serviceId);
-		ResponseEntity<String> responseEntity = new ResponseEntity<>("Service deleted successfully", HttpStatus.NO_CONTENT);
-		return responseEntity;
+		return new ResponseEntity<>("Salon service deleted successfully", HttpStatus.NO_CONTENT);
 	}
 }

@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 		return responseEntity;
 	}
 
-	// To handle validations like @NotBlank which are on fields of entity class.
+	// To handle validations like @NotBlank which are on fields of entity class. //@Valid should be added in Customer class along with Mapping
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public Map<String, String> handleValidationException(MethodArgumentNotValidException ex) {
 		Map<String, String> errors = new HashMap<>();
@@ -59,8 +59,47 @@ public class GlobalExceptionHandler {
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorResponse handleNoCardFoundException(NoCardFoundException ex) {
 		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
-				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/customer");
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/card");
+		return res;
+	}
+	
+	@ExceptionHandler(NoAppointmentFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleNoAppointmentFoundException(NoAppointmentFoundException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/appointment");
 		return res;
 	}
 
+	@ExceptionHandler(DuplicateAppointmentException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorResponse handleDuplicateAppointmentException(DuplicateAppointmentException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(),
+				HttpStatus.CONFLICT.getReasonPhrase(), ex.getMessage(), "/customer");
+		return res;
+	}
+	
+	@ExceptionHandler(DuplicateServiceException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorResponse handleDuplicateServiceException(DuplicateServiceException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(),
+				HttpStatus.CONFLICT.getReasonPhrase(), ex.getMessage(), "/customer");
+		return res;
+	}
+	
+	@ExceptionHandler(InsufficientBalanceException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ErrorResponse handleInsufficientBalanceException(InsufficientBalanceException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(),
+				HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage(), "/customer");
+		return res;
+	}
+	
+	@ExceptionHandler(NoReceiptFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleNoReceiptFoundException(NoReceiptFoundException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/appointment");
+		return res;
+	}
 }

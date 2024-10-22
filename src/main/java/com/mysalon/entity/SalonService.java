@@ -1,14 +1,14 @@
 package com.mysalon.entity;
 
+import java.math.BigDecimal;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -25,15 +25,12 @@ public class SalonService {
 	private String serviceName;
 	
 	@Column(name = "service_price")
-	private String servicePrice;
+	private BigDecimal servicePrice;
 	
 	@Column(name = "service_duration")
 	private String serviceDuration;
 	
-	// Many Services can be associated with one Appointment
 	@JsonIgnore
-	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "appointment_id", nullable = false)
-	private Appointment appointments;
-    //If we have used @ManyToMany or @OneToMany then we should have used List<Appointment> in above line
+	@ManyToMany(mappedBy = "salonServices")
+    private List<Appointment> appointments;
 }

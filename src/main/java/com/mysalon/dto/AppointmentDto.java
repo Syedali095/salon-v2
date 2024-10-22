@@ -1,4 +1,4 @@
-package com.mysalon.entity;
+package com.mysalon.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

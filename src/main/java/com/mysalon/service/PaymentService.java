@@ -1,12 +1,15 @@
 package com.mysalon.service;
 
+import java.math.BigDecimal;
 import java.util.List;
-
+import com.mysalon.dto.PaymentDto;
 import com.mysalon.entity.Payment;
-import com.mysalon.entity.PaymentDto;
 
 public interface PaymentService {
-	Payment savePayment(Payment payment);
+	
+	Payment makePayment(PaymentDto paymentDto, Long cardId, Long salonCardId);
+	
+	void reversePayment(Long paymentId, Long salonCardId); //write this
 	
 	Payment getPaymentByAppointmentId(Long appointmentId);
 	
@@ -14,5 +17,8 @@ public interface PaymentService {
 	
 	List<Payment> getAllPayments();
 	
-	Payment makePayment(PaymentDto paymentDto, Long cardId, Long salonCardId);
+	//void deletePayment(Long paymentId);
+	
+	void transaction(Long payerCardId, Long payeeCardId, BigDecimal amount);
+	
 }

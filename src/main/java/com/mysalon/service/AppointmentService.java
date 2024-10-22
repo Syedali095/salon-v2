@@ -2,27 +2,29 @@ package com.mysalon.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import com.mysalon.dto.AppointmentDto;
+import com.mysalon.dto.PaymentDto;
 import com.mysalon.entity.Appointment;
-import com.mysalon.entity.AppointmentDto;
-import com.mysalon.entity.PaymentDto;
 
 public interface AppointmentService {
 	
-	Appointment addAppointment(Appointment appointment);
+	Appointment bookAppointment(Long custId, AppointmentDto appointmentDto, PaymentDto paymentDto, Long custCardId, Long salonCardId); //C
 	
-	Appointment bookAppointment(AppointmentDto appointmentDto, PaymentDto paymentDto, Long custCardId, Long salonCardId);
+	void cancelAppointment(Long appointmentId, Long salonCardId); //C
 	
-	List<Appointment> getAppointmentListByCustomerId(long custId);
+	Appointment getAppointmentByAppointmentId(Long appointmentId); //C
 	
-	Appointment getAppointmentByAppointmentId(long appointmentId);
+	List<Appointment> getAppointmentListByCustomerId(Long custId); //C
 	
-	List<Appointment> getAllAppointment();
+	List<Appointment> getAppointmentListByLocation(String location); //C
 	
-	List<Appointment> getAppointmentListByLocation(String location);
+	List<Appointment> getAppointmentListByDate(LocalDate preferredDate); //C
 	
-	List<Appointment> getAppointmentListByDate(LocalDate preferredDate);
+	List<Appointment> getAllAppointment(); //C
 	
-	void deleteAppointment(long appointmentId);
+	Appointment updateAppointment(Long appointmentId, AppointmentDto appointmentDto); //C
 	
-	Appointment updateAppointment(long appointmentId, Appointment appointment);
+	//void deleteAppointment(Long appointmentId);
 }
+
+//Cancel appointment (Delete the Order also)

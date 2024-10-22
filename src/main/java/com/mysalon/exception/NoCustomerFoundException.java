@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class NoCustomerFoundException extends RuntimeException {
 	private static final long serialVersionUID = 3L;
-	
+
 	public NoCustomerFoundException(String message) {
 		super(message);
 	}

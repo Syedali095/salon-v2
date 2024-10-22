@@ -43,14 +43,15 @@ public class Address {
 	private Customer customer;
 
 	// Constructor without Customer field, used for Test class
-	public Address(Long addressId,
-			@NotBlank(message = "Please enter the Address") @Size(min = 5, max = 30) String fullAddress,
-			@NotBlank(message = "Please enter the State") String state,
-			@NotBlank(message = "Please enter the Pincode") @Pattern(regexp = "\\d{6}", message = "Enter valid pincode") String pincode) {
+	public Address(Long addressId, String fullAddress, String state,String pincode) {
 		super();
 		this.addressId = addressId;
 		this.fullAddress = fullAddress;
 		this.state = state;
 		this.pincode = pincode;
+	}
+
+	public Address() {
+		super();
 	}
 }

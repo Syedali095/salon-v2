@@ -1,11 +1,15 @@
 package com.mysalon.service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.mysalon.entity.Card;
 import com.mysalon.entity.Customer;
 import com.mysalon.exception.BadRequestException;
+import com.mysalon.exception.NoCardFoundException;
+import com.mysalon.exception.NoCustomerFoundException;
 import com.mysalon.repository.CardRepository;
 import com.mysalon.repository.CustomerRepository;
 
@@ -19,47 +23,72 @@ public class CardServiceImpl implements CardService{
 	private CustomerRepository customerRepository;
 	
 	@Override
-	public Card saveCard(Card card) {
-		Optional<Card> optional = cardRepository.findById(card.getCardId());
+	public Card saveCard(Long custId, Card card) {
+		// Checks if customer exists
+		Customer customer = customerRepository.findById(custId)
+				.orElseThrow(() -> new NoCustomerFoundException("Customer with cust Id " + custId + " not found"));
+
+		// Check if a card already exists for this customer
+		Optional<Card> optional = cardRepository.findByCustomer_CustId(custId);
 		if(optional.isPresent()) {
-			throw new BadRequestException("Card Alredy Exist");
+			throw new BadRequestException("Card Alredy Exist for this customer");
 		}
+		
+		// Change the name to uppercase.
+		card.setCardHolderName(card.getCardHolderName().toUpperCase());
+		
+		// Link card with the customer
+		card.setCustomer(customer);
+		
+		// Link customer with the card - As it is bidirectional mapping
+		customer.setCard(card);
+		
+		// Save the card
 		Card newCard = cardRepository.save(card);
+		
+		//return the card
 		return newCard;
+	}
+	
+	@Override
+	public Card getCardById(Long cardId) {
+		return cardRepository.findById(cardId)
+				.orElseThrow(() -> new NoCardFoundException("No card found with card Id" +cardId));
 	}
 
 	@Override
 	public Card getCardDetails(String cardNumber) {
-		Optional<Card> optional = cardRepository.findByCardNumber(cardNumber);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Card Does not Exist");
-		}
-		Card newCard = optional.get();
-		return newCard;
-	}
-
-	@Override
-	public void deleteCard(Long cardId) {
-		Optional<Card> optional = cardRepository.findById(cardId);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Card Does not Exist");
-		}
-		cardRepository.deleteById(cardId);
+		return cardRepository.findByCardNumber(cardNumber)
+				.orElseThrow(() -> new NoCardFoundException("No card found with card number " +cardNumber));
 	}
 
 	@Override
 	public Card getCardDetailsByCustomerId(Long custId) {
-		Optional<Customer> optional = customerRepository.findById(custId);
-		if(optional.isEmpty()) {
-			throw new BadRequestException("Customer Does not Exist");
-		}
+		// Check if customer exists
+		customerRepository.findById(custId)
+		.orElseThrow(() -> new NoCustomerFoundException("Customer with cust Id " +custId +" not found"));
 		
-		Optional<Card> optionalCard = cardRepository.findByCustomer_CustId(custId);
-		if(optionalCard.isEmpty()) {
-			throw new BadRequestException("Card Does not Exist for this customer");
-		}
-		Card newCard = optionalCard.get();
-		return newCard;
+		// Retrieve card details by customer ID
+		Card card = cardRepository.findByCustomer_CustId(custId)
+		.orElseThrow(() -> new NoCardFoundException("Card Does not Exist for this customer"));
+		
+		return card;
 	}
 
+	@Override
+	public void deleteCard(Long cardId) {
+		cardRepository.findById(cardId)
+			.orElseThrow(() -> new NoCardFoundException("No card found with card Id" +cardId));
+		
+		cardRepository.deleteById(cardId);
+	}
+
+	@Override
+	public List<Card> getAll() {
+		List<Card> cards = cardRepository.findAll();
+		if(cards == null) {
+			return Collections.emptyList();
+		}
+		return cards;
+	}
 }

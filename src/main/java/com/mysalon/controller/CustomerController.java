@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.mysalon.entity.Customer;
-import com.mysalon.exception.NoCustomerFoundException;
 import com.mysalon.service.CustomerService;
 import jakarta.validation.Valid;
 
@@ -29,64 +28,48 @@ public class CustomerController {
 	@PostMapping("/save")
 	public ResponseEntity<Customer> addCustomer(@Valid @RequestBody Customer customer) {
 		Customer newCustomer = customerService.addCustomer(customer);
-		ResponseEntity<Customer> responseEntity = new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
-		return responseEntity;
-	}
-
-	@DeleteMapping("/delete/{custId}")
-	public ResponseEntity<String> removeCustomer(@PathVariable Long custId) throws NoCustomerFoundException {
-		customerService.removeCustomer(custId);
-		ResponseEntity<String> responseEntity = new ResponseEntity<>("Customer deleted successfully",
-				HttpStatus.NO_CONTENT);// before I used .OK
-		return responseEntity;
-	}
-
-	@PutMapping("/update/{custId}")
-	public ResponseEntity<Customer> updateCustomer(@PathVariable long custId, @Valid @RequestBody Customer customer)
-			throws NoCustomerFoundException {
-		Customer updatedCustomer = customerService.updateCustomer(custId, customer);
-		ResponseEntity<Customer> responseEntity = new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
-		return responseEntity;
-	}
-
-	// PATCH for partial update
-	@PatchMapping("/patch/{custId}")
-	public ResponseEntity<Customer> patchCustomer(@PathVariable long custId, @Valid @RequestBody Customer customer)
-			throws NoCustomerFoundException {
-		Customer updatedCustomer = customerService.updateCustomer(custId, customer); // Reuses the same method
-		return new ResponseEntity<>(updatedCustomer, HttpStatus.OK); // 200 OK
+		return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
 	}
 
 	@GetMapping("/{userId}")
-	public ResponseEntity<Customer> getCustomer(@PathVariable Long userId) throws NoCustomerFoundException {
+	public ResponseEntity<Customer> getCustomer(@PathVariable Long userId) {
 		Customer newCustomer = customerService.getCustomer(userId);
-		ResponseEntity<Customer> responseEntity = new ResponseEntity<>(newCustomer, HttpStatus.OK);
-		return responseEntity;
-	}
-
-	@GetMapping("/all")
-	public ResponseEntity<List<Customer>> getAllCustomers() throws NoCustomerFoundException {
-		List<Customer> allCustomers = customerService.getAllCustomers();
-		ResponseEntity<List<Customer>> responseEntity = new ResponseEntity<>(allCustomers, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newCustomer, HttpStatus.OK);
 	}
 
 	@GetMapping("/search")
-	public ResponseEntity<Customer> getCustomerByNameAndEmail(@RequestParam String name,
-			@RequestParam String email) throws NoCustomerFoundException {
+	public ResponseEntity<Customer> getCustomerByNameAndEmail(@RequestParam String name, @RequestParam String email) {
 		Customer newCustomer = customerService.getCustomerByNameAndEmail(name, email);
-		ResponseEntity<Customer> responseEntity = new ResponseEntity<>(newCustomer, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newCustomer, HttpStatus.OK);
 	}
-	// In Postman use define name and email in params
 
 	@GetMapping("/search1")
-	public ResponseEntity<Customer> getCustomerByNameAndState(@RequestParam String name,
-			@RequestParam String state) throws NoCustomerFoundException {
+	public ResponseEntity<Customer> getCustomerByNameAndState(@RequestParam String name, @RequestParam String state) {
 		Customer newCustomer = customerService.getCustomerByNameAndAddress_State(name, state);
-		ResponseEntity<Customer> responseEntity = new ResponseEntity<>(newCustomer, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(newCustomer, HttpStatus.OK);
+	}
+
+	@GetMapping("/all")
+	public ResponseEntity<List<Customer>> getAllCustomers() {
+		List<Customer> allCustomers = customerService.getAllCustomers();
+		return new ResponseEntity<>(allCustomers, HttpStatus.OK);
+	}
+
+	@PutMapping("/update/{custId}")
+	public ResponseEntity<Customer> updateCustomer(@PathVariable Long custId, @Valid @RequestBody Customer customer) {
+		Customer updatedCustomer = customerService.updateCustomer(custId, customer);
+		return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+	}
+
+	@PatchMapping("/patch/{custId}")
+	public ResponseEntity<Customer> patchCustomer(@PathVariable Long custId, @Valid @RequestBody Customer customer) {
+		Customer updatedCustomer = customerService.updateCustomer(custId, customer);
+		return new ResponseEntity<>(updatedCustomer, HttpStatus.OK); // 200 OK
+	}
+
+	@DeleteMapping("/delete/{custId}")
+	public ResponseEntity<String> removeCustomer(@PathVariable Long custId) {
+		customerService.removeCustomer(custId);
+		return new ResponseEntity<>("Customer deleted successfully", HttpStatus.NO_CONTENT);
 	}
 }
-
-//Notes: Always use DTO. Avoid using Customer Entity directly.

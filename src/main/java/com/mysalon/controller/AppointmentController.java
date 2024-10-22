@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+//import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,86 +15,74 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.mysalon.dto.AppointmentDto;
+import com.mysalon.dto.PaymentDto;
 import com.mysalon.entity.Appointment;
-import com.mysalon.entity.AppointmentDto;
-import com.mysalon.entity.PaymentDto;
 import com.mysalon.service.AppointmentService;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/appointment")
 public class AppointmentController {
-	
+
 	@Autowired
 	private AppointmentService appointmentService;
-	
-	@PostMapping("/save")
-	public ResponseEntity<Appointment> saveAppointment(@Valid @RequestBody Appointment appointment){
-		Appointment newAppointment = appointmentService.addAppointment(appointment);
-		ResponseEntity<Appointment> responseEntity = new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
-		return responseEntity;
-	}
-	
+
 	@PostMapping("/book")
-	public ResponseEntity<Appointment> bookAppointment(@Valid @RequestBody AppointmentDto appointmentDto, @RequestBody PaymentDto paymentDto, Long custCardId, Long salonCardId){
-		Appointment newAppointment = appointmentService.bookAppointment(appointmentDto, paymentDto, custCardId, salonCardId);
-		ResponseEntity<Appointment> responseEntity = new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
-		return responseEntity;
+	public ResponseEntity<Appointment> bookAppointment(@PathVariable Long custId, @Valid @RequestBody AppointmentDto appointmentDto,
+			@Valid @RequestBody PaymentDto paymentDto, @RequestParam Long custCardId, @RequestParam Long salonCardId) {
+		Appointment newAppointment = appointmentService.bookAppointment(custId, appointmentDto, paymentDto, custCardId,
+				salonCardId);
+		return new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
 	}
-	
-	@GetMapping("/{custId}")
-	public ResponseEntity<List<Appointment>> getAppointmentListByCustomerId(@PathVariable long custId){
+
+	@GetMapping("/customer/{custId}")
+	public ResponseEntity<List<Appointment>> getAppointmentsByCustomerId(@PathVariable Long custId) {
 		List<Appointment> appointmentList = appointmentService.getAppointmentListByCustomerId(custId);
-		ResponseEntity<List<Appointment>> responseEntity = new ResponseEntity<>(appointmentList, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(appointmentList, HttpStatus.OK);
 	}
-	
-	@GetMapping("/{appointmentId}")
-	public ResponseEntity<Appointment> getAppointmentByAppointmentId(@PathVariable long appointmentId){
+
+	@GetMapping("/appointment/{appointmentId}")
+	public ResponseEntity<Appointment> getAppointmentByAppointmentId(@PathVariable Long appointmentId) {
 		Appointment appointment = appointmentService.getAppointmentByAppointmentId(appointmentId);
-		ResponseEntity<Appointment> responseEntity = new ResponseEntity<>(appointment, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(appointment, HttpStatus.OK);
+	}
+
+	@GetMapping("/location")
+	public ResponseEntity<List<Appointment>> getAppointmentsByLocation(@RequestParam String location) {
+		List<Appointment> appointmentList = appointmentService.getAppointmentListByLocation(location);
+		return new ResponseEntity<>(appointmentList, HttpStatus.OK);
+	}
+
+	@GetMapping("/date")
+	public ResponseEntity<List<Appointment>> getAppointmentsByDate(@RequestParam LocalDate preferredDate) {
+		List<Appointment> appointmentList = appointmentService.getAppointmentListByDate(preferredDate);
+		return new ResponseEntity<>(appointmentList, HttpStatus.OK);
 	}
 	
 	@GetMapping("/getAll")
-	public ResponseEntity<List<Appointment>> getAllAppointments(){
+	public ResponseEntity<List<Appointment>> getAllAppointments() {
 		List<Appointment> appointmentList = appointmentService.getAllAppointment();
-		ResponseEntity<List<Appointment>> responseEntity = new ResponseEntity<>(appointmentList, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<>(appointmentList, HttpStatus.OK);
 	}
-	
-	@DeleteMapping("/{appointmentId}")
-	public ResponseEntity<String> DeleteAppointmentByAppointmentId(@PathVariable long appointmentId){
-		appointmentService.deleteAppointment(appointmentId);
-		ResponseEntity<String> responseEntity = new ResponseEntity<>("Appointment deleted successfully", HttpStatus.NO_CONTENT);
-		return responseEntity;
-	}
-	
+
 	@PutMapping("/update/{custId}")
-	public ResponseEntity<Appointment> updateAppointment(@Valid @PathVariable long custId, @RequestBody Appointment appointment){
-		Appointment newAppointment = appointmentService.updateAppointment(custId, appointment);
-		ResponseEntity<Appointment> responseEntity = new ResponseEntity<>(newAppointment, HttpStatus.OK);
-		return responseEntity;
+	public ResponseEntity<Appointment> updateAppointment(@Valid @PathVariable Long custId,
+			@RequestBody AppointmentDto appointmentDto) {
+		Appointment newAppointment = appointmentService.updateAppointment(custId, appointmentDto);
+		return new ResponseEntity<>(newAppointment, HttpStatus.OK);
 	}
-	
+
 	@PatchMapping("/patch/{custId}")
-	public ResponseEntity<Appointment> patchAppointment(@Valid @PathVariable long custId, @RequestBody Appointment appointment){
-		Appointment newAppointment = appointmentService.updateAppointment(custId, appointment);
-		ResponseEntity<Appointment> responseEntity = new ResponseEntity<>(newAppointment, HttpStatus.OK);
-		return responseEntity;
+	public ResponseEntity<Appointment> patchAppointment(@Valid @PathVariable Long custId,
+			@RequestBody AppointmentDto appointmentDto) {
+		Appointment newAppointment = appointmentService.updateAppointment(custId, appointmentDto);
+		return new ResponseEntity<>(newAppointment, HttpStatus.OK);
 	}
-	
-	@GetMapping("/location")
-	public ResponseEntity<List<Appointment>> getAppointmentListByLocation(@RequestParam String location){
-		List<Appointment> appointmentList = appointmentService.getAppointmentListByLocation(location);
-		ResponseEntity<List<Appointment>> responseEntity = new ResponseEntity<>(appointmentList, HttpStatus.OK);
-		return responseEntity;
-	}
-	
-	@GetMapping("/{preferredDate}")
-	public ResponseEntity<List<Appointment>> getAppointmentListByDate(@PathVariable LocalDate preferredDate){
-		List<Appointment> appointmentList = appointmentService.getAppointmentListByDate(preferredDate);
-		ResponseEntity<List<Appointment>> responseEntity = new ResponseEntity<>(appointmentList, HttpStatus.OK);
-		return responseEntity;
-	}
+
+//	@DeleteMapping("/delete/{appointmentId}")
+//	public ResponseEntity<String> deleteAppointmentById(@PathVariable Long appointmentId) {
+//		appointmentService.deleteAppointment(appointmentId);
+//		return new ResponseEntity<>("Appointment deleted successfully", HttpStatus.NO_CONTENT);
+//	}
 }

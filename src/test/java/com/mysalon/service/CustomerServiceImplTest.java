@@ -39,20 +39,20 @@ public class CustomerServiceImplTest {
         autoCloseable = MockitoAnnotations.openMocks(this);
         customerService = new CustomerServiceImpl(customerRepository);
 
-        customer = new Customer();
-        customer.setCustId(1);
+        customer = new Customer(); //Customer is instantiated with No-Arg Constructor
+        customer.setCustId(1L);
         customer.setName("Syed");
         customer.setContactNo("9887876654");
         customer.setEmail("syed@gmail.com");
         customer.setDob(LocalDate.of(1999,07,12));
-        customer.setAddress(new Address(1, "Sangareddy", "TS", "567876"));
+        customer.setAddress(new Address(1L, "Sangareddy", "TS", "567876"));
         
         updatedCustomerDetails = new Customer();
         updatedCustomerDetails.setName("Mohsin");
         updatedCustomerDetails.setContactNo("9887800654");
         updatedCustomerDetails.setEmail("syed@gmail.com");
         updatedCustomerDetails.setDob(LocalDate.of(1999,07,12));
-        updatedCustomerDetails.setAddress(new Address(1, "Sangareddyyy", "TS", "537876"));
+        updatedCustomerDetails.setAddress(new Address(1L, "Sangareddyyy", "TS", "537876"));
     }
 
     @AfterEach
