@@ -18,6 +18,6 @@ public interface OrderService {
 	
 	List<Order> getAllOrders();
 	
-	void deleteOrder(Long orderId);
+	void deleteOrder(Customer customer, Long orderId);
 
 }

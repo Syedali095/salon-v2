@@ -31,8 +31,6 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 	@Autowired
 	private SalonServiceRepository salonServiceRepository;
 	
-	private FinalPriceReceiptService finalPriceReceiptService;
-	
 	@Override
 	public FinalPriceReceipt saveReceipt(Long custId, List<String> serviceNames, Appointment appointment) {
 		
@@ -41,8 +39,8 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 		String name = customerRepository.findById(custId).get().getName();
 		finalPriceReceipt.setName(name);
 		
-		List<BigDecimal> priceList = salonServiceRepository.findServicePriceByServiceNameIn(serviceNames);
-		BigDecimal totalPrice = finalPriceReceiptService.totalPriceCalculator(serviceNames, priceList);
+		List<BigDecimal> priceList = salonServiceRepository.findPricesByServiceNames(serviceNames);
+		BigDecimal totalPrice = totalPriceCalculator(serviceNames, priceList);
 		finalPriceReceipt.setTotalPrice(totalPrice);
 		
 		BigDecimal paidAmount = AppointmentBookingFee.getFEE();
@@ -51,7 +49,7 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 		
 		// Create a Map 
 		Map<String, BigDecimal> serviceDetails = new HashMap<>();
-		serviceDetails = finalPriceReceiptService.serviceDetailsMapCreator(serviceNames, priceList);
+		serviceDetails = serviceDetailsMapCreator(serviceNames, priceList);
 		finalPriceReceipt.setServiceDetails(serviceDetails);
 		
 		// Link the Receipt with the Appointment
@@ -70,31 +68,26 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 	}
 
 	@Override
-	public FinalPriceReceipt updateReceipt(List<String> serviceNames, Appointment existingAppointment) {
+	public FinalPriceReceipt updateReceipt(FinalPriceReceipt oldReceipt, List<String> serviceNames, Appointment existingAppointment) {
 		
-		FinalPriceReceipt finalPriceReceipt = new FinalPriceReceipt();
-		
-		List<BigDecimal> priceList = salonServiceRepository.findServicePriceByServiceNameIn(serviceNames);
-
-		BigDecimal totalPrice = finalPriceReceiptService.totalPriceCalculator(serviceNames, priceList);
-		
-		finalPriceReceipt.setTotalPrice(totalPrice);
+		List<BigDecimal> priceList = salonServiceRepository.findPricesByServiceNames(serviceNames);
+		BigDecimal totalPrice = totalPriceCalculator(serviceNames, priceList);
+		oldReceipt.setTotalPrice(totalPrice);
 		
 		BigDecimal paidAmount = AppointmentBookingFee.getFEE();
 		BigDecimal finalPrice = totalPrice.subtract(paidAmount);
-		finalPriceReceipt.setFinalPrice(finalPrice);
+		oldReceipt.setFinalPrice(finalPrice);
 		
 		// Create a Map 
 		Map<String, BigDecimal> serviceDetails = new HashMap<>();
-		serviceDetails = finalPriceReceiptService.serviceDetailsMapCreator(serviceNames, priceList);
+		serviceDetails = serviceDetailsMapCreator(serviceNames, priceList);
+		oldReceipt.setServiceDetails(serviceDetails);
 		
-		finalPriceReceipt.setServiceDetails(serviceDetails);
+		oldReceipt.setAppointment(existingAppointment);
 		
-		finalPriceReceipt.setAppointment(existingAppointment);
+		finalPriceReceiptRepository.save(oldReceipt);
 		
-		finalPriceReceiptRepository.save(finalPriceReceipt);
-		
-		return finalPriceReceipt;
+		return oldReceipt;
 	}
 	
 	@Override
@@ -116,7 +109,7 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 	}
 
 	@Override
-	public FinalPriceReceiptDto getReceiptByAppointmentId(Long appointmentId) {
+	public FinalPriceReceiptDto getReceiptDtoByAppointmentId(Long appointmentId) {
 		FinalPriceReceipt receipt = finalPriceReceiptRepository.findByAppointment_AppointmentId(appointmentId)
 				.orElseThrow(() -> new NoReceiptFoundException("No receipt found with Id: " +appointmentId));
 		
@@ -133,6 +126,13 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 		return receiptDto;
 	}
 
+	@Override
+	public FinalPriceReceipt getReceiptByAppointmentId(Long appointmentId) {
+		FinalPriceReceipt receipt = finalPriceReceiptRepository.findByAppointment_AppointmentId(appointmentId)
+				.orElseThrow(() -> new NoReceiptFoundException("No receipt found with Id: " +appointmentId));
+		return receipt;
+	}
+	
 	@Override
 	public List<FinalPriceReceiptDto> getReceiptListById(Long custId) {
 		customerRepository.findById(custId)
@@ -211,4 +211,5 @@ public class FinalPriceReceiptServiceImpl implements FinalPriceReceiptService {
 		}
 		return serviceDetails;
 	}
+
 }

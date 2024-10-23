@@ -3,6 +3,8 @@ package com.mysalon.entity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -36,10 +38,11 @@ public class Appointment {
 	
 	@FutureOrPresent(message = "The preferred date must be today or a future date.")
 	@Column(name="preferred_date")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private LocalDate preferredDate;
 	
-	@NotBlank(message="Enter the preferred time")
 	@Column(name="preferred_time")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
 	private LocalTime preferredTime;
 
 	@JsonIgnore
@@ -47,11 +50,12 @@ public class Appointment {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
     
-	//@JsonIgnore
+	@JsonIgnore
 	@OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_id", referencedColumnName = "order_id")
 	private Order order;
 	
+	@JsonIgnore
 	@ManyToMany//cascade
     @JoinTable(
         name = "appointment_salonservice",
@@ -60,10 +64,12 @@ public class Appointment {
     )
     private List<SalonService> salonServices;
     
+	@JsonIgnore
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
     private Payment payment;
     
+	@JsonIgnore
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "receipt_id")
     private FinalPriceReceipt finalPriceReceipt;

@@ -19,12 +19,15 @@ import com.mysalon.exception.BadRequestException;
 import com.mysalon.exception.DuplicateAppointmentException;
 import com.mysalon.exception.NoAppointmentFoundException;
 import com.mysalon.exception.NoCustomerFoundException;
+import com.mysalon.exception.NoReceiptFoundException;
 import com.mysalon.exception.NoServiceFoundException;
 import com.mysalon.repository.AppointmentRepository;
 import com.mysalon.repository.CustomerRepository;
+import com.mysalon.repository.FinalPriceReceiptRepository;
 import com.mysalon.repository.OrderRepository;
 import com.mysalon.repository.PaymentRepository;
 import com.mysalon.repository.SalonServiceRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
@@ -38,15 +41,18 @@ public class AppointmentServiceImpl implements AppointmentService {
 	@Autowired
 	private PaymentService paymentService;
 	@Autowired
-	private OrderRepository orderRepository;
-	@Autowired
 	private PaymentRepository paymentRepository;
 	@Autowired
 	private OrderService orderService;
 	@Autowired
 	private FinalPriceReceiptService finalPriceReceiptService;
-
+	@Autowired
+	private FinalPriceReceiptRepository finalPriceReceiptRepository;
+	@Autowired
+	private OrderRepository orderRepository;
+	
 	@Override
+	@Transactional
 	public Appointment bookAppointment(Long custId, AppointmentDto appointmentDto, PaymentDto paymentDto,
 			Long custCardId, Long salonCardId) {
 
@@ -73,7 +79,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 		List<String> serviceNames = appointmentDto.getServiceNames();
 		List<SalonService> services = salonServiceRepository.findByServiceNameIn(serviceNames);
 
-		// Check if atleast one service is opted
+		// Check if at least one service is opted
 		if (services.isEmpty()) {
 			throw new NoServiceFoundException("Select the services to book an appointment");
 		}
@@ -109,6 +115,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 	}
 
 	@Override
+	@Transactional
 	public Appointment updateAppointment(Long appointmentId, AppointmentDto appointmentDto) {
 
 		Appointment existingAppointment = appointmentRepository.findById(appointmentId)
@@ -135,7 +142,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 			List<SalonService> services = salonServiceRepository.findByServiceNameIn(serviceNames);
 			existingAppointment.setSalonServices(services);
 
-			FinalPriceReceipt updatedReceipt = finalPriceReceiptService.updateReceipt(serviceNames, existingAppointment);
+			FinalPriceReceipt oldReceipt = finalPriceReceiptService.getReceiptByAppointmentId(appointmentId);
+			FinalPriceReceipt updatedReceipt = finalPriceReceiptService.updateReceipt(oldReceipt, serviceNames, existingAppointment);
 			existingAppointment.setFinalPriceReceipt(updatedReceipt);
 		}
 
@@ -144,39 +152,69 @@ public class AppointmentServiceImpl implements AppointmentService {
 	}
 
 	@Override
-	public void cancelAppointment(Long appointmentId, Long salonCardId) {
+	@Transactional
+	public void cancelAppointment(Long custId, Long appointmentId, Long salonCardId) {
+		
+		// Get the Customer
+		Customer customer = customerRepository.findById(custId)
+				.orElseThrow(() -> new NoCustomerFoundException("No customer has found by cust Id: " + custId));
+				
+		// Get the Appointment
 		Appointment appointment = appointmentRepository.findById(appointmentId)
 				.orElseThrow(() -> new NoAppointmentFoundException(
 						"Appointment with Appintment ID:" + appointmentId + " not found"));
 
+		
 		LocalDate appointmentDate = appointment.getPreferredDate();
+		LocalTime appointmentTime = appointment.getPreferredTime();
+		
 		if (appointmentDate.isBefore(LocalDate.now())) {
 			throw new BadRequestException("Appointment date already exceeded");
+		}else if (appointmentDate.isEqual(LocalDate.now()) && appointmentTime.isBefore(LocalTime.now())) {
+	        throw new BadRequestException("Appointment time has already passed for today");
+	    }
+
+		// Reverse Payment
+		Long paymentId = appointment.getPayment().getPaymentId();
+		paymentService.reversePayment(paymentId, salonCardId);
+			
+		// Unlink and Delete the Payment associated to this Appointment
+		appointment.setPayment(null); // Unlink the Payment from the Appointment
+		appointmentRepository.save(appointment);	// save the changes to the Appointment
+		paymentRepository.deleteById(paymentId);	// delete the payment
+			
+		// Unlink and Delete the Order associated to this Appointment
+		Order order = orderService.getOrderByAppointmentId(appointmentId);
+		Long orderId = order.getOrderId();
+			
+		appointment.setOrder(null);
+		appointmentRepository.save(appointment);
+		orderRepository.deleteById(orderId);
+
+		// Unlink and Delete the Receipt associated to this Appointment
+		FinalPriceReceipt receipt = finalPriceReceiptRepository.findByAppointment_AppointmentId(appointmentId)
+				.orElseThrow(() -> new NoReceiptFoundException("No receipt found with Appointment Id: " +appointmentId));
+		Long receiptId = receipt.getReceiptId();
+			
+		appointment.setFinalPriceReceipt(null);
+		appointmentRepository.save(appointment);
+		finalPriceReceiptRepository.deleteById(receiptId);
+
+		// Remove this Appointment from Customer's Appointment List
+		if(customer.getAppointments().contains(appointment)) {
+			customer.removeAppointment(appointment);
+			customerRepository.save(customer); // Save the changes
 		}
-
-		LocalTime appointmentTime = appointment.getPreferredTime();
-
-		if (appointmentDate.isAfter(LocalDate.now())
-				|| (appointmentDate.isEqual(LocalDate.now()) && appointmentTime.isAfter(LocalTime.now()))) {
-
-			Long paymentId = appointment.getPayment().getPaymentId();
-			paymentService.reversePayment(paymentId, salonCardId);
-
-			paymentRepository.deleteById(paymentId);
-
-			Long orderId = appointment.getOrder().getOrderId();
-			orderRepository.deleteById(orderId);
-
-			finalPriceReceiptService.deleteReceipt(appointmentId);
-
-			appointmentRepository.deleteById(appointmentId);
-		}
+			
+		// Delete the Appointment
+		appointmentRepository.deleteById(appointmentId);
 	}
 
 	@Override
 	public Appointment getAppointmentByAppointmentId(Long appointmentId) {
-		return appointmentRepository.findById(appointmentId).orElseThrow(() -> new NoAppointmentFoundException(
+		Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new NoAppointmentFoundException(
 				"Appointment with Appintment ID:" + appointmentId + " not found"));
+		return appointment;
 	}
 
 	@Override

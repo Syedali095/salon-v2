@@ -76,10 +76,21 @@ public class CardServiceImpl implements CardService{
 	}
 
 	@Override
-	public void deleteCard(Long cardId) {
-		cardRepository.findById(cardId)
+	public void deleteCard(Long custId, Long cardId) {
+		Card card = cardRepository.findById(cardId)
 			.orElseThrow(() -> new NoCardFoundException("No card found with card Id" +cardId));
 		
+		Customer customer = customerRepository.findById(custId)
+				.orElseThrow(()-> new NoCustomerFoundException("Customer Not Found with cust Id: " +custId));
+		
+		if (customer.getCard() != null && customer.getCard().equals(card)) {
+			// Break the Relationship
+			customer.setCard(null);	// Unlink the card
+			customerRepository.save(customer);	// Save the changes
+		}else {
+	        throw new NoCardFoundException("The card does not belong to the customer with cust Id: " + custId);
+	    }
+	
 		cardRepository.deleteById(cardId);
 	}
 

@@ -18,19 +18,19 @@ public class FinalPriceReceiptController {
 	@Autowired
 	private FinalPriceReceiptService finalPriceReceiptService;
 	
-	@GetMapping("/{receiptId}")
-	public ResponseEntity<FinalPriceReceiptDto> getReceiptById(@PathVariable Long receitId){
-		FinalPriceReceiptDto finalPriceReceiptDto = finalPriceReceiptService.getReceiptById(receitId);
+	@GetMapping("/receiptId/{receiptId}")
+	public ResponseEntity<FinalPriceReceiptDto> getReceiptById(@PathVariable Long receiptId){
+		FinalPriceReceiptDto finalPriceReceiptDto = finalPriceReceiptService.getReceiptById(receiptId);
 		return new ResponseEntity<>(finalPriceReceiptDto, HttpStatus.OK);
 	}
 	
-	@GetMapping("/{appointmentId}")
-	public ResponseEntity<FinalPriceReceiptDto> getReceiptByAppointmentId(@PathVariable Long appointmentId){
-		FinalPriceReceiptDto finalPriceReceiptDto = finalPriceReceiptService.getReceiptByAppointmentId(appointmentId);
+	@GetMapping("/appointmentId/{appointmentId}")
+	public ResponseEntity<FinalPriceReceiptDto> getReceiptDtoByAppointmentId(@PathVariable Long appointmentId){
+		FinalPriceReceiptDto finalPriceReceiptDto = finalPriceReceiptService.getReceiptDtoByAppointmentId(appointmentId);
 		return new ResponseEntity<>(finalPriceReceiptDto, HttpStatus.OK);
 	}
 	
-	@GetMapping("/{custId}")
+	@GetMapping("/custId/{custId}")
 	public ResponseEntity<List<FinalPriceReceiptDto>> getReceiptListByCustId(@PathVariable Long custId){
 		List<FinalPriceReceiptDto> finalPriceReceiptDto = finalPriceReceiptService.getReceiptListById(custId);
 		return new ResponseEntity<>(finalPriceReceiptDto, HttpStatus.OK);

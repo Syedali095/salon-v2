@@ -2,6 +2,8 @@ package com.mysalon.entity;
 
 import java.time.LocalDate;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -49,6 +51,7 @@ public class Customer {
 	@NotNull //@NotEmpty and @NotBlank are not applicable on LocalDate
 	@Past
 	@Column(name = "dob")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private LocalDate dob;
 
 	// 1 Customer can have 1 address
@@ -57,6 +60,12 @@ public class Customer {
 	@Valid // ensures nested validation And triggers validation of the associated Address entity (To handle Exception)
 	private Address address;
 
+	// 1 Customer can have 1 card
+	//@JsonIgnore
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "card_id") // This column will be the foreign key
+	private Card card;
+	
 	// 1 customer can have MANY appointments
 	@JsonIgnore
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -69,12 +78,6 @@ public class Customer {
 		appointments.remove(appointment);
 		appointment.setCustomer(null);
 	}
-	
-	// 1 Customer can have 1 card
-	//@JsonIgnore
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "card_id") // This column will be the foreign key
-	private Card card;
 
 	// 1 customer can have MANY orders
 	@JsonIgnore

@@ -3,6 +3,7 @@ package com.mysalon.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,15 +27,17 @@ public class Order {
 	private Long orderId;
 	
 	@Column(name="booking_date")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private LocalDate bookingDate;
 	
 	@Column(name="booking_time")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
 	private LocalTime bookingTime;
 	
 	@Column(name="amount_paid")
 	private BigDecimal amountPaid;
 	
-	//@JsonIgnore
+	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "cust_id", nullable = false)
 	private Customer customer;

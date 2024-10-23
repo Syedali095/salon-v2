@@ -36,5 +36,10 @@ public class PaymentController {
 		List<Payment> newPayment = paymentService.getAllPayments();
 		return new ResponseEntity<>(newPayment, HttpStatus.OK);
 	}
+	
+	@GetMapping("/paymentId/{paymentId}")
+	public ResponseEntity<Payment> getPaymentById(@PathVariable Long paymentId){
+		Payment newPayment = paymentService.getPaymentById(paymentId);
+		return new ResponseEntity<>(newPayment, HttpStatus.OK);
+	}
 }
-//add getPaymentById

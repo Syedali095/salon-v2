@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 //import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.mysalon.dto.AppointmentDto;
+import com.mysalon.dto.BookingRequestDto;
 import com.mysalon.dto.PaymentDto;
 import com.mysalon.entity.Appointment;
 import com.mysalon.service.AppointmentService;
@@ -28,9 +30,12 @@ public class AppointmentController {
 	@Autowired
 	private AppointmentService appointmentService;
 
-	@PostMapping("/book")
-	public ResponseEntity<Appointment> bookAppointment(@PathVariable Long custId, @Valid @RequestBody AppointmentDto appointmentDto,
-			@Valid @RequestBody PaymentDto paymentDto, @RequestParam Long custCardId, @RequestParam Long salonCardId) {
+	@PostMapping("/book/{custId}")
+	public ResponseEntity<Appointment> bookAppointment(@PathVariable Long custId, 
+			@RequestBody BookingRequestDto bookingRequestDto, @RequestParam Long custCardId, @RequestParam Long salonCardId) {
+		
+		AppointmentDto appointmentDto = bookingRequestDto.getAppointmentDto();
+	    PaymentDto paymentDto = bookingRequestDto.getPaymentDto();
 		Appointment newAppointment = appointmentService.bookAppointment(custId, appointmentDto, paymentDto, custCardId,
 				salonCardId);
 		return new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
@@ -66,10 +71,10 @@ public class AppointmentController {
 		return new ResponseEntity<>(appointmentList, HttpStatus.OK);
 	}
 
-	@PutMapping("/update/{custId}")
-	public ResponseEntity<Appointment> updateAppointment(@Valid @PathVariable Long custId,
+	@PutMapping("/update/{custId}/{appointmentId}")
+	public ResponseEntity<Appointment> updateAppointment(@PathVariable Long custId, @PathVariable Long appointmentId,
 			@RequestBody AppointmentDto appointmentDto) {
-		Appointment newAppointment = appointmentService.updateAppointment(custId, appointmentDto);
+		Appointment newAppointment = appointmentService.updateAppointment(appointmentId, appointmentDto);
 		return new ResponseEntity<>(newAppointment, HttpStatus.OK);
 	}
 
@@ -80,9 +85,9 @@ public class AppointmentController {
 		return new ResponseEntity<>(newAppointment, HttpStatus.OK);
 	}
 
-//	@DeleteMapping("/delete/{appointmentId}")
-//	public ResponseEntity<String> deleteAppointmentById(@PathVariable Long appointmentId) {
-//		appointmentService.deleteAppointment(appointmentId);
-//		return new ResponseEntity<>("Appointment deleted successfully", HttpStatus.NO_CONTENT);
-//	}
+	@DeleteMapping("/cancel/{custId}/{appointmentId}/{salonCardId}")
+	public ResponseEntity<String> deleteAppointmentById(@PathVariable Long custId,@PathVariable Long appointmentId, @PathVariable Long salonCardId) {
+		appointmentService.cancelAppointment(custId, appointmentId, salonCardId);
+		return new ResponseEntity<>("Appointment deleted successfully", HttpStatus.OK);
+	}
 }

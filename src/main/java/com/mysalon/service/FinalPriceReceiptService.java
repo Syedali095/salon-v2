@@ -14,13 +14,17 @@ public interface FinalPriceReceiptService {
 	
 	FinalPriceReceiptDto getReceiptById(Long receiptId);
 	
-	FinalPriceReceiptDto getReceiptByAppointmentId(Long appointmentId);
+	//FinalPriceReceiptDto getReceiptByAppointmentId(Long appointmentId);
+	
+	FinalPriceReceiptDto getReceiptDtoByAppointmentId(Long appointmentId);
+	
+	FinalPriceReceipt getReceiptByAppointmentId(Long appointmentId);
 	
 	List<FinalPriceReceiptDto> getReceiptListById(Long custId);
 	
 	List<FinalPriceReceiptDto> getAllReceipt();
 	
-	FinalPriceReceipt updateReceipt(List<String> serviceNames, Appointment appointment);
+	FinalPriceReceipt updateReceipt(FinalPriceReceipt oldReceipt, List<String> serviceNames, Appointment appointment);
 	
 	void deleteReceipt(Long appointmentId);
 	

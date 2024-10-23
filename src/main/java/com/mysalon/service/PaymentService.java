@@ -11,14 +11,14 @@ public interface PaymentService {
 	
 	void reversePayment(Long paymentId, Long salonCardId); //write this
 	
+	void transaction(Long payerCardId, Long payeeCardId, BigDecimal amount);
+	
+	Payment getPaymentById(Long paymentId);
+	
 	Payment getPaymentByAppointmentId(Long appointmentId);
 	
 	List<Payment> getPaymentListByCustomerId(Long custId);
 	
 	List<Payment> getAllPayments();
-	
-	//void deletePayment(Long paymentId);
-	
-	void transaction(Long payerCardId, Long payeeCardId, BigDecimal amount);
 	
 }

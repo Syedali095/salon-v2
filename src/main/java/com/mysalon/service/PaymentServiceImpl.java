@@ -29,7 +29,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@Autowired
 	private CardRepository cardRepository;
 //	@Autowired - This is a PaymentService Class, it should not be Autowired with itself.
-	private PaymentService paymentService;
+	//private PaymentService paymentService;
 
 	
 	@Override
@@ -54,13 +54,17 @@ public class PaymentServiceImpl implements PaymentService {
 		}
 		payment.setAmount(enteredAmount);
 
-		paymentService.transaction(custCardId, salonCardId, enteredAmount);
+		transaction(custCardId, salonCardId, enteredAmount);
 		
-		Optional<Card> customerCard = cardRepository.findById(custCardId);
-
+		Optional<Card> optionalCard = cardRepository.findById(custCardId);
+		Card customerCard = optionalCard.get();
+		
 		// Link the Payment to Card
-		payment.setCard(customerCard.get());
+		payment.setCard(customerCard);
 
+		// Add the Payment to Card's Payment List - Bidirectional along with List
+		customerCard.addPayment(payment);
+		
 		// Save and return the payment
 		Payment newPayment = paymentRepository.save(payment);
 		return newPayment;
@@ -74,7 +78,14 @@ public class PaymentServiceImpl implements PaymentService {
 		BigDecimal paidAmount = payment.getAmount();
 		Long custCardId = payment.getCard().getCardId();
 		
-		paymentService.transaction(salonCardId, custCardId, paidAmount);
+		transaction(salonCardId, custCardId, paidAmount);
+		
+		Optional<Card> optionalCard = cardRepository.findById(custCardId);
+		Card customerCard = optionalCard.get();
+		
+		// Remove Payment from Customer-Card's Payment list
+		customerCard.removePayment(payment);
+		
 		paymentRepository.deleteById(paymentId);
 	}
 
@@ -111,8 +122,8 @@ public class PaymentServiceImpl implements PaymentService {
 
 	@Override
 	public Payment getPaymentByAppointmentId(Long appointmentId) {
-		return paymentRepository.findByAppointment_AppointmentId(appointmentId).orElseThrow(
-				() -> new NoPaymentFoundException("No Payment found with Appointment ID " + appointmentId));
+		return paymentRepository.findByAppointment_AppointmentId(appointmentId)
+				.orElseThrow(() -> new NoPaymentFoundException("No Payment found with Appointment ID " + appointmentId));
 	}
 
 	@Override
@@ -136,11 +147,10 @@ public class PaymentServiceImpl implements PaymentService {
 		return paymentList;
 	}
 
-//	@Override
-//	public void deletePayment(Long paymentId) {
-//		paymentRepository.findById(paymentId)
-//				.orElseThrow(() -> new NoPaymentFoundException("No Payment found with Payment ID " + paymentId));
-//		paymentRepository.deleteById(paymentId);
-//	}
+	@Override
+	public Payment getPaymentById(Long paymentId) {
+		return paymentRepository.findById(paymentId)
+				.orElseThrow(() -> new NoPaymentFoundException("No Payment found with Payment ID " + paymentId));
+	}
 
 }

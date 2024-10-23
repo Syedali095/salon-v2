@@ -55,6 +55,14 @@ public class GlobalExceptionHandler {
 		return res;
 	}
 
+	@ExceptionHandler(NoPaymentFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleNoPaymentFoundException(NoPaymentFoundException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/customer");
+		return res;
+	}
+	
 	@ExceptionHandler(NoCardFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorResponse handleNoCardFoundException(NoCardFoundException ex) {

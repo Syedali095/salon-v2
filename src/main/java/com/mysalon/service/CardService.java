@@ -14,7 +14,7 @@ public interface CardService {
 	
 	Card getCardDetailsByCustomerId(Long custId);
 	
-	void deleteCard(Long cardId);
+	void deleteCard(Long custId, Long cardId);
 	
 	List<Card> getAll();
 }
