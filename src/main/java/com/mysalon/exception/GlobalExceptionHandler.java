@@ -110,4 +110,12 @@ public class GlobalExceptionHandler {
 				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/appointment");
 		return res;
 	}
+	
+	@ExceptionHandler(NoOrderFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleNoOrderFoundException(NoOrderFoundException ex) {
+		ErrorResponse res = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), "/appointment");
+		return res;
+	}
 }

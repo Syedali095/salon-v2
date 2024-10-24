@@ -63,8 +63,15 @@ public class AppointmentServiceImpl implements AppointmentService {
 		// Convert DTO to Appointment entity
 		Appointment appointment = new Appointment();
 		appointment.setLocation(appointmentDto.getLocation());
-		appointment.setPreferredDate(appointmentDto.getPreferredDate());
-		appointment.setPreferredTime(appointmentDto.getPreferredTime());
+		
+		LocalDate date = appointmentDto.getPreferredDate();
+		LocalTime time = appointmentDto.getPreferredTime();
+		
+		if(date.isBefore(LocalDate.now()) || date.isEqual(LocalDate.now()) && time.isBefore(LocalTime.now())) {
+			throw new BadRequestException("Select the date properly");
+		}
+		appointment.setPreferredDate(date);
+		appointment.setPreferredTime(time);
 
 		// Check if the customer has already booked an appointment for the same day, time, and location
 		List<Appointment> existingAppointments = appointmentRepository.findAppointmentByAppointmentDetails(custId,
